@@ -1,5 +1,5 @@
 -module(frequency).
--export([start/0, stop/0, allocate/0, deallocate/1]).
+-export([start/0, stop/0, allocate/0, deallocate/1, dummy/0]).
 -export([init/1, terminate/1, handle/2]).
 
 %% These are the start functions used to create and
@@ -15,13 +15,17 @@ get_frequencies() -> [10,11,12,13,14,15].
 stop()	         -> server:stop(frequency).
 allocate()	 -> server:call(frequency, {allocate, self()}).
 deallocate(Freq) -> server:call(frequency, {deallocate, Freq}).
+dummy() -> server:call(frequency, {dummy}).
 
 handle({allocate, Pid}, Frequencies) ->
-    allocate(Frequencies, Pid);
+  allocate(Frequencies, Pid);
 handle({deallocate, Freq}, Frequencies) ->
-    {deallocate(Frequencies, Freq), ok}.
+  {deallocate(Frequencies, Freq), ok};
+handle({dummy}, _Frequencies) ->
+  dummy_sleep().
+
 terminate(_Frequencies) ->
-    ok.
+  ok.
 
 %% The Internal Helper Functions used to allocate and
 %% deallocate frequencies.
@@ -33,3 +37,6 @@ allocate({[Freq|Free], Allocated}, Pid) ->
 deallocate({Free, Allocated}, Freq) ->
     NewAllocated=lists:keydelete(Freq, 1, Allocated),
     {[Freq|Free], NewAllocated}.
+
+dummy_sleep() ->
+  timer:sleep(10000).
